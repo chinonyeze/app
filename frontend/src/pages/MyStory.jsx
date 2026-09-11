@@ -83,7 +83,7 @@ export default function MyStory() {
           </div>
           <label className="mt-6 flex items-center gap-2 text-sm text-slate-700">
             <input data-testid="consent-toggle" type="checkbox" checked={!!p.consent_feedback} onChange={(e) => set("consent_feedback", e.target.checked)}/>
-            I consent to sharing anonymized pre/post-evaluation feedback so MatchPrep can improve.
+            I consent to sharing anonymized pre/post-evaluation feedback so matchprepai can improve.
           </label>
           <div className="mt-6 flex flex-wrap gap-3">
             <Button data-testid="save-profile" onClick={save} disabled={busy} className="rounded-full bg-slate-900 hover:bg-slate-800"><Save className="w-4 h-4 mr-1"/>Save profile</Button>

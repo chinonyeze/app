@@ -31,7 +31,7 @@ export default function AppShell() {
             <Stethoscope className="w-5 h-5" />
           </div>
           <div>
-            <div className="font-display font-extrabold text-slate-900 leading-tight">MatchPrep <span className="text-rose-600">AI</span></div>
+            <div className="font-display font-extrabold text-slate-900 leading-tight">matchprep<span className="text-rose-600">ai</span></div>
             <div className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Residency coach</div>
           </div>
         </div>

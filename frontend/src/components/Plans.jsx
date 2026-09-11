@@ -110,7 +110,7 @@ export function UpgradeDialog({ open, onOpenChange, currentPlan }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl" data-testid="upgrade-dialog">
         <DialogHeader>
-          <DialogTitle className="font-display text-2xl">Choose your MatchPrep plan</DialogTitle>
+          <DialogTitle className="font-display text-2xl">Choose your matchprepai plan</DialogTitle>
         </DialogHeader>
         <div className="mt-2"><PlansGrid onSelect={start} currentPlan={currentPlan}/></div>
         {busy && <div className="mt-4 text-sm text-slate-500 text-center">Opening secure checkout…</div>}
