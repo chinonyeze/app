@@ -34,7 +34,7 @@ export default function Landing() {
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 grid place-items-center text-white">
               <Stethoscope className="w-5 h-5" />
             </div>
-            <span className="font-display font-extrabold text-lg text-slate-900">matchprep<span className="text-rose-600">ai</span></span>
+            <span className="font-display font-extrabold text-lg text-slate-900">MatchPrep <span className="text-rose-600">AI</span></span>
           </div>
           <div className="flex items-center gap-3">
             <a href="#features" className="text-sm text-slate-600 hover:text-slate-900 hidden sm:block">Features</a>
@@ -148,7 +148,7 @@ export default function Landing() {
       </section>
 
       <footer className="border-t border-rose-100 py-8 text-center text-xs text-slate-500">
-        © matchprepai · Educational coaching only, not clinical advice.
+        © MatchPrep AI · Educational coaching only, not clinical advice.
       </footer>
     </div>
   );

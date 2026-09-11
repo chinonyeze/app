@@ -1,4 +1,4 @@
-"""matchprepai backend - residency interview prep."""
+"""MatchPrep AI backend - residency interview prep."""
 import os
 import uuid
 import json
@@ -30,7 +30,7 @@ stripe.api_key = STRIPE_SECRET_KEY
 client = AsyncIOMotorClient(MONGO_URL)
 db = client[DB_NAME]
 
-app = FastAPI(title="matchprepai")
+app = FastAPI(title="MatchPrep AI")
 api = APIRouter(prefix="/api")
 
 app.add_middleware(
