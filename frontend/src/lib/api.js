@@ -36,7 +36,7 @@ export async function deleteProgram(id) { return (await api.delete(`/programs/${
 export async function knowProgram(payload) { return (await api.post("/programs/know", payload)).data; }
 export async function whyUs(payload) { return (await api.post("/programs/why-us", payload)).data; }
 export async function progressSummary() { return (await api.get("/progress/summary")).data; }
-export async function createCheckout(origin_url) { return (await api.post("/payments/checkout", { origin_url })).data; }
+export async function createCheckout(origin_url, lookup_key = "matchprep_pro_monthly") { return (await api.post("/payments/checkout", { origin_url, lookup_key })).data; }
 export async function paymentStatus(session_id) { return (await api.get(`/payments/status/${session_id}`)).data; }
 
 export async function ttsUrl(text, voice = "nova") {

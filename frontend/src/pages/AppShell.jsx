@@ -2,8 +2,9 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { Stethoscope, LayoutDashboard, Mic, Building2, LineChart, User, LogOut, Sparkles } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { createCheckout } from "@/lib/api";
 import { toast } from "sonner";
+import { useState } from "react";
+import { UpgradeDialog } from "@/components/Plans";
 
 const tabs = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard", tid: "tab-dashboard" },
@@ -16,15 +17,11 @@ const tabs = [
 export default function AppShell() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const showUpgrade = !user?.plan || user.plan === "free";
+  const planLabel = { free: "Free plan", essential: "✓ Essential", pro: "✓ Pro member", season_pass: "✓ Season Pass" }[user?.plan || "free"] || "Free plan";
 
-  const upgrade = async () => {
-    try {
-      const { checkout_url } = await createCheckout(window.location.origin);
-      window.location.href = checkout_url;
-    } catch (e) {
-      toast.error("Could not start checkout");
-    }
-  };
+  const upgrade = () => setUpgradeOpen(true);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex">
@@ -56,13 +53,13 @@ export default function AppShell() {
           ))}
         </nav>
         <div className="p-3">
-          {user?.plan !== "pro" && (
+          {showUpgrade && (
             <button data-testid="sidebar-upgrade" onClick={upgrade} className="w-full text-left group rounded-2xl p-4 bg-gradient-to-br from-rose-500 to-pink-600 text-white hover-lift">
               <div className="flex items-center gap-2 text-xs uppercase tracking-wider font-semibold opacity-90">
                 <Sparkles className="w-3.5 h-3.5"/> Upgrade
               </div>
               <div className="mt-2 font-display font-bold text-lg leading-tight">Unlock unlimited practice</div>
-              <div className="mt-1 text-xs opacity-90">$20/month · cancel anytime</div>
+              <div className="mt-1 text-xs opacity-90">From $9.99/month · cancel anytime</div>
             </button>
           )}
           <div className="mt-3 flex items-center gap-3 p-3 rounded-xl border border-slate-100">
@@ -71,7 +68,7 @@ export default function AppShell() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-sm font-medium text-slate-800 truncate" data-testid="user-name">{user?.name}</div>
-              <div className="text-[11px] text-slate-500 truncate">{user?.plan === "pro" ? "✓ Pro member" : "Free plan"}</div>
+              <div className="text-[11px] text-slate-500 truncate" data-testid="user-plan">{planLabel}</div>
             </div>
             <button data-testid="logout-button" onClick={() => { logout(); navigate("/"); }} className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800">
               <LogOut className="w-4 h-4"/>
@@ -92,6 +89,7 @@ export default function AppShell() {
           <Outlet />
         </div>
       </main>
+      <UpgradeDialog open={upgradeOpen} onOpenChange={setUpgradeOpen} currentPlan={user?.plan}/>
     </div>
   );
 }

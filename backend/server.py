@@ -134,6 +134,14 @@ class WhyUsReq(BaseModel):
 
 class CheckoutReq(BaseModel):
     origin_url: str
+    lookup_key: str = "matchprep_pro_monthly"
+
+
+PLAN_BY_LOOKUP = {
+    "matchprep_essential_monthly": "essential",
+    "matchprep_pro_monthly": "pro",
+    "matchprep_season_pass_one_time": "season_pass",
+}
 
 
 # -------- Auth --------
@@ -608,17 +616,18 @@ async def stt(file: UploadFile = File(...), user=Depends(get_current_user)):
 # -------- Stripe subscription --------
 @api.post("/payments/checkout")
 async def create_checkout(req: CheckoutReq, user=Depends(get_current_user)):
-    price_list = stripe.Price.list(lookup_keys=["matchprep_pro_monthly"], active=True, limit=1).data
+    lookup = req.lookup_key if req.lookup_key in PLAN_BY_LOOKUP else "matchprep_pro_monthly"
+    price_list = stripe.Price.list(lookup_keys=[lookup], active=True, limit=1).data
     if not price_list:
         raise HTTPException(500, "Price not configured")
     price = price_list[0]
     kwargs = dict(
         line_items=[{"price": price.id, "quantity": 1}],
-        mode="subscription",
+        mode="subscription" if price.recurring else "payment",
         success_url=f"{req.origin_url}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
         cancel_url=f"{req.origin_url}/payment/cancel",
         customer_email=user["email"],
-        metadata={"user_id": user["user_id"], "lookup_key": "matchprep_pro_monthly"},
+        metadata={"user_id": user["user_id"], "lookup_key": lookup, "plan": PLAN_BY_LOOKUP[lookup]},
     )
     try:
         session = stripe.checkout.Session.create(**kwargs, managed_payments={"enabled": True})
@@ -633,7 +642,8 @@ async def create_checkout(req: CheckoutReq, user=Depends(get_current_user)):
     await db.payment_transactions.insert_one({
         "session_id": session.id,
         "user_id": user["user_id"],
-        "lookup_key": "matchprep_pro_monthly",
+        "lookup_key": lookup,
+        "plan": PLAN_BY_LOOKUP[lookup],
         "amount": (price.unit_amount or 0),
         "currency": price.currency,
         "status": "initiated",
@@ -664,7 +674,7 @@ async def payment_status(session_id: str):
                     }},
                 )
                 if record.get("user_id"):
-                    await db.users.update_one({"user_id": record["user_id"]}, {"$set": {"plan": "pro"}})
+                    await db.users.update_one({"user_id": record["user_id"]}, {"$set": {"plan": record.get("plan", "pro")}})
                 record = await db.payment_transactions.find_one({"session_id": session_id}, {"_id": 0})
         except Exception:
             pass
@@ -696,8 +706,9 @@ async def stripe_webhook(request: Request):
             }},
         )
         user_id = (obj.get("metadata") or {}).get("user_id")
+        plan = (obj.get("metadata") or {}).get("plan", "pro")
         if user_id:
-            await db.users.update_one({"user_id": user_id}, {"$set": {"plan": "pro"}})
+            await db.users.update_one({"user_id": user_id}, {"$set": {"plan": plan}})
     elif t == "customer.subscription.deleted":
         rec = await db.payment_transactions.find_one({"stripe_subscription_id": obj.get("id")}, {"_id": 0, "user_id": 1})
         if rec and rec.get("user_id"):

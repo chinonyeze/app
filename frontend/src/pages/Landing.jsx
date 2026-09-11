@@ -3,6 +3,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Sparkles, Stethoscope, Mic, Eye, TrendingUp, Brain, ChevronRight } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { PlansGrid } from "@/components/Plans";
+import { createCheckout } from "@/lib/api";
+import { toast } from "sonner";
 
 const features = [
   { icon: Mic, title: "Realistic Voice Mock Interviews", desc: "6 interviewer personalities. AI listens, follows up, probes — never scripted." },
@@ -63,7 +66,7 @@ export default function Landing() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button data-testid="hero-start-cta" onClick={startLogin} size="lg" className="rounded-full bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 shadow-lg shadow-rose-500/25 px-8">
-                Start prepping — $20/month
+                Start free — upgrade anytime
               </Button>
               <Button data-testid="hero-see-features" variant="outline" size="lg" onClick={() => document.getElementById("features").scrollIntoView({ behavior: "smooth" })} className="rounded-full border-rose-200 text-slate-700">
                 See what's inside
@@ -126,31 +129,22 @@ export default function Landing() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="max-w-4xl mx-auto px-6 py-16">
-        <Card className="border-rose-200 rounded-3xl overflow-hidden">
-          <div className="grid md:grid-cols-2">
-            <div className="p-8 md:p-10 bg-gradient-to-br from-rose-600 to-pink-600 text-white">
-              <div className="text-xs uppercase tracking-wider font-semibold opacity-90">Pro Membership</div>
-              <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-5xl font-extrabold">$20</span>
-                <span className="opacity-90">/ month</span>
-              </div>
-              <p className="mt-4 text-white/90 text-sm leading-relaxed">Unlimited mock interviews, unlimited programs, body language + speech analysis, spaced repetition, and every future update through match season.</p>
-              <Button data-testid="pricing-cta" onClick={startLogin} className="mt-8 w-full rounded-full bg-white text-rose-700 hover:bg-rose-50 font-semibold">Start now</Button>
-            </div>
-            <div className="p-8 md:p-10">
-              <ul className="space-y-3 text-sm text-slate-700">
-                <li>✓ Voice-first mock interviews (6 personalities)</li>
-                <li>✓ Body-language & speech coaching</li>
-                <li>✓ SARR framework scoring on every answer</li>
-                <li>✓ Program-specific prep + Why Us builder</li>
-                <li>✓ Curveball question library</li>
-                <li>✓ Readiness score dashboard</li>
-                <li>✓ Spaced repetition weak-area drills</li>
-              </ul>
-            </div>
-          </div>
-        </Card>
+      <section id="pricing" className="max-w-6xl mx-auto px-6 py-16">
+        <div className="max-w-2xl mb-10">
+          <div className="text-xs font-semibold tracking-wider uppercase text-rose-700">Pricing</div>
+          <h2 className="mt-3 text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">Start free. Go Pro when you're ready.</h2>
+          <p className="mt-3 text-slate-600">Interview Season Pass covers you from Sept 23 through Match Day (Mar 15) for one flat price.</p>
+        </div>
+        <PlansGrid
+          onSelect={async (lookup) => {
+            if (!user) { startLogin(); return; }
+            try {
+              const { checkout_url } = await createCheckout(window.location.origin, lookup);
+              window.location.href = checkout_url;
+            } catch { toast.error("Could not open checkout"); }
+          }}
+          currentPlan={user?.plan}
+        />
       </section>
 
       <footer className="border-t border-rose-100 py-8 text-center text-xs text-slate-500">
