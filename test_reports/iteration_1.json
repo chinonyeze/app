@@ -1,0 +1,48 @@
+{
+  "summary": "Backend smoke tested via public URL with seeded session. Auth, profile CRUD, programs CRUD, questions/generate, analyze/speech, progress/summary, and Stripe checkout+status all pass. Four LLM-powered endpoints (analyze/sarr, interview/start, programs/know, programs/why-us) return 500 due to EMERGENT_LLM_KEY budget exceeded (max $0.001, current $0.022 per litellm error). Because interview/start failed, /interview/message and /interview/end/{sid} could not be exercised.",
+  "tested_scope": ["backend", "auth", "integration"],
+  "passed": [
+    "GET /api/ returns {ok:true,service:matchprep-ai}",
+    "GET /api/auth/me without Authorization returns 401",
+    "GET /api/auth/me with Bearer token returns user JSON (user_id, email, name)",
+    "PUT /api/profile persists fields present in ProfileUpdate schema; returns user_id + updated_at",
+    "GET /api/profile returns saved profile (specialty=Internal Medicine)",
+    "POST /api/programs creates and returns program_id + user_id",
+    "GET /api/programs lists per user_id",
+    "DELETE /api/programs/{program_id} returns {ok:true}",
+    "POST /api/questions/generate returns questions array with q/category/why_asked (LLM call succeeded)",
+    "POST /api/analyze/speech returns overall_score (28), wpm (84), filler_count (5) plus tips (LLM call succeeded)",
+    "GET /api/progress/summary returns categories(7 keys), overall_readiness, streak_days, weakest",
+    "POST /api/payments/checkout returns checkout_url + session_id using lookup_key matchprep_pro_monthly",
+    "GET /api/payments/status/{session_id} returns {session_id,status:initiated,payment_status:pending}"
+  ],
+  "failed": [
+    {
+      "area": "LLM budget - blocks 4+ endpoints",
+      "issue": "POST /api/analyze/sarr, /api/interview/start, /api/programs/know, /api/programs/why-us all return 500 Internal Server Error",
+      "evidence": "backend.err.log: litellm.RateLimitError: 'Budget has been exceeded! Key=dahkvt0tsumc73anqttg Current cost: 0.022098, Max budget: 0.001'. Fields sent by client are valid; failure originates from emergentintegrations chat.send_message.",
+      "priority": "HIGH"
+    },
+    {
+      "area": "Interview flow (blocked)",
+      "issue": "Could not verify POST /api/interview/message and POST /api/interview/end/{session_id} because /interview/start returns 500 (same LLM budget cause).",
+      "evidence": "Dependency chain: no session_id available to call message/end.",
+      "priority": "HIGH"
+    },
+    {
+      "area": "PUT /api/profile schema coverage (informational)",
+      "issue": "Request fields cv_text, strengths, weaknesses in the review request are silently dropped (not part of ProfileUpdate model). Not a 500, but worth confirming whether product expects these to persist.",
+      "evidence": "Response omitted those keys; only schema fields returned.",
+      "priority": "LOW"
+    }
+  ],
+  "action_items": [
+    "Increase / refresh EMERGENT_LLM_KEY budget (currently capped at $0.001 which is exhausted after a couple LLM calls). Without this, SARR, interview, program-know, why-us cannot function.",
+    "After budget fix, retest: POST /api/analyze/sarr, /api/interview/start -> /message -> /end/{sid}, /api/programs/know, /api/programs/why-us for structured JSON fields.",
+    "Optional: confirm whether ProfileUpdate should include cv_text/strengths/weaknesses (product spec mentions CV-based profile)."
+  ],
+  "success_rate": {"backend": "70%", "frontend": "not tested (backend-only run)"},
+  "retest_needed": true,
+  "full_testing_deferred": true,
+  "test_credentials": "Was empty; seeded a user + session and recorded token in /app/memory/test_credentials.md."
+}

@@ -1,0 +1,23 @@
+{
+  "summary": "Backend LLM endpoints re-tested after Emergent Universal Key budget recharge. All 7 LLM-dependent endpoints now return 200 with expected structured JSON. Full end-to-end interview flow (start -> message -> end) works. Non-LLM endpoints from iteration_1 remain passing.",
+  "tested_scope": ["backend", "integration"],
+  "passed": [
+    "POST /api/analyze/sarr -> 200 with situation, action, reflection, relevance, *_score (75/85/70/90), overall_score=80, coaching[]",
+    "POST /api/programs/know -> 200 with mission, likely_strengths, curriculum_highlights, research_opportunities, suggested_questions_for_pd, suggested_questions_for_residents, questions_to_avoid, why_us_talking_points",
+    "POST /api/programs/why-us -> 200 with answer, warnings[], strong_hooks[] (requires body field 'reasons' [List[str]] and optional 'student_experience')",
+    "POST /api/interview/start -> 200 returns session_id (iv_acf845dd62fd), opener, personality, mode",
+    "POST /api/interview/message -> 200 returns {reply} (requires body field 'student_message', NOT 'message')",
+    "POST /api/interview/end/{session_id} -> 200 returns scores{content,conciseness,confidence,specialty_knowledge,program_knowledge,behavioral,body_language}, strengths[], improvements[], top_priority",
+    "POST /api/questions/generate -> 200 returns questions[] with q/category/why_asked (retest confirms still working)",
+    "GET /api/auth/me with seeded Bearer token -> 200 (auth still valid)"
+  ],
+  "failed": [],
+  "action_items": [
+    "Docs / OpenAPI: /api/interview/message expects 'student_message' (not 'message'); /api/programs/why-us expects 'reasons: List[str]' (not 'user_context'). Consider aliasing or improving frontend contract if any client sends 'message'/'user_context'.",
+    "Minor: /api/interview/end returned all-zero scores because only one exchange happened before ending; behavior is correct but worth confirming product expectation for very-short sessions."
+  ],
+  "success_rate": {"backend": "100% (7/7 LLM endpoints + auth)", "frontend": "not tested (backend-only run per request)"},
+  "retest_needed": false,
+  "full_testing_deferred": true,
+  "test_credentials": "Used seeded token test_session_matchprep_1789088264272 from /app/memory/test_credentials.md — valid."
+}

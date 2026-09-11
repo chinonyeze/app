@@ -1,0 +1,124 @@
+{
+  "project_name": "MatchPrep AI - Medical Residency Interview Coach",
+  "theme": {
+    "mode": "light",
+    "aesthetic": "Pink but Professional (Elevated Medical Rose & Slate Architecture)",
+    "description": "A refined, trustworthy $20/mo subscription SaaS design pairing sophisticated deep berry/rose accents (#BE123C, #E11D48) with ultra-clean medical slate neutrals (#0F172A, #F8FAFC) and delicate warm blush surfaces (#FFF1F2, #FCE7F3). Avoids child-like pinks; exudes high-performance clinical authority with supportive warmth."
+  },
+  "typography": {
+    "heading_font": "Outfit, Plus Jakarta Sans, sans-serif",
+    "body_font": "Inter, Plus Jakarta Sans, sans-serif",
+    "mono_font": "JetBrains Mono, monospace",
+    "scale": {
+      "hero_h1": "text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none text-slate-900",
+      "section_h2": "text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-slate-900",
+      "card_h3": "text-lg sm:text-xl font-semibold text-slate-800",
+      "subtitle": "text-base sm:text-lg text-slate-600 font-normal leading-relaxed",
+      "body": "text-sm sm:text-base text-slate-700 leading-normal",
+      "caption": "text-xs font-medium tracking-wider uppercase text-rose-700"
+    }
+  },
+  "colors": {
+    "primary": {
+      "default": "#E11D48",
+      "hover": "#BE123C",
+      "active": "#9F1239",
+      "foreground": "#FFFFFF",
+      "subtle": "#FFF1F2",
+      "border": "#FECDD3"
+    },
+    "slate_neutral": {
+      "bg_main": "#F8FAFC",
+      "card_bg": "#FFFFFF",
+      "sidebar_bg": "#FFFFFF",
+      "text_primary": "#0F172A",
+      "text_muted": "#64748B",
+      "border": "#E2E8F0"
+    },
+    "accents": {
+      "rose_glow": "#FCE7F3",
+      "berry_dark": "#881337",
+      "emerald_pass": "#059669",
+      "amber_warning": "#D97706",
+      "indigo_tech": "#4F46E5"
+    },
+    "gradients": {
+      "hero_badge": "bg-gradient-to-r from-rose-500/10 via-pink-500/10 to-rose-500/5",
+      "primary_btn": "bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 shadow-md shadow-rose-500/20",
+      "glass_card": "backdrop-blur-md bg-white/80 border border-rose-100/60 shadow-sm"
+    }
+  },
+  "layout_and_navigation": {
+    "nav_type": "Fixed Top Header + Sticky Glass Sub-bar or Left Sidebar on Desktop",
+    "five_tabs": [
+      {
+        "id": "dashboard",
+        "label": "Dashboard",
+        "description": "Interview countdown clock, today's 5-min practice streak, readiness score radial, quick mock interview trigger."
+      },
+      {
+        "id": "practice",
+        "label": "Practice",
+        "description": "Realistic Mock Interview Mode (Voice AI, 6 Interviewer Personalities), SARR Answer Framework Coach, Speech & Video Analysis."
+      },
+      {
+        "id": "programs",
+        "label": "Programs",
+        "description": "Program-Specific Prep, Know This Program cards, Why Us builder, Questions YOU Should Ask library."
+      },
+      {
+        "id": "progress",
+        "label": "Progress",
+        "description": "7-Category Readiness Analytics (Content, Conciseness, Confidence, Specialty, Program, Behavioral, Body Language), Spaced Repetition queue."
+      },
+      {
+        "id": "mystory",
+        "label": "My Story",
+        "description": "CV / ERAS Application Builder, USMLE scores, Experiences, Personal Statement uploader, Auto-question generator."
+      }
+    ]
+  },
+  "key_features_design_guidelines": {
+    "interviewer_personalities": [
+      {"name": "Warm Program Director", "tag": "Encouraging & Empathetic", "badge_color": "bg-emerald-50 text-emerald-700 border-emerald-200"},
+      {"name": "Skeptic Faculty", "tag": "Challenges Assumptions & Edge Cases", "badge_color": "bg-amber-50 text-amber-700 border-amber-200"},
+      {"name": "Rapid-Fire Attendee", "tag": "High Tempo & Concise Focus", "badge_color": "bg-rose-50 text-rose-700 border-rose-200"},
+      {"name": "Researcher PhD", "tag": "Methodology & Publication Deep Dive", "badge_color": "bg-indigo-50 text-indigo-700 border-indigo-200"},
+      {"name": "Chief Resident", "tag": "Culture Fit, On-call Scenarios", "badge_color": "bg-purple-50 text-purple-700 border-purple-200"},
+      {"name": "Silent Observer", "tag": "Minimal Feedback, Tests Composure", "badge_color": "bg-slate-100 text-slate-700 border-slate-300"}
+    ],
+    "answer_framework_sarr": {
+      "steps": ["Situation", "Action", "Reflection", "Relevance"],
+      "ui_style": "Color-coded breakdown cards with live AI highlighter and progress percentage indicators."
+    },
+    "analytics_categories": [
+      "Content Mastery",
+      "Conciseness & Pace",
+      "Confidence & Vocal Pitch",
+      "Specialty Knowledge",
+      "Program Knowledge",
+      "Behavioral SARR Fit",
+      "Body Language & Eye Contact"
+    ]
+  },
+  "image_urls": {
+    "doctor_hero": "https://images.unsplash.com/photo-1623854767648-e7bb8009f0db?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "doctor_portrait": "https://images.unsplash.com/photo-1659353888906-adb3e0041693?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "stethoscope_close": "https://images.unsplash.com/photo-1638202993928-7267aad84c31?crop=entropy&cs=srgb&fm=jpg&q=85"
+  },
+  "instructions_to_main_agent": [
+    "Ensure all interactive elements have explicit data-testid attributes (e.g. data-testid='tab-dashboard', data-testid='start-mock-interview-button', data-testid='personality-warm-pd').",
+    "Use standard Tailwind rose and slate palettes (#E11D48 primary, #FFF1F2 blush accents, #0F172A headers). Do NOT use generic purple/indigo or childish bright pink.",
+    "Mock Interview Mode MUST include full voice/audio visualizer waves, live transcript simulation, start/stop recording, camera feed window with real-time posture/eye contact overlays.",
+    "SARR Answer Framework Coach should render student responses split into Situation, Action, Reflection, and Relevance with scores and improvement suggestions.",
+    "Include a simulated consent modal for video/audio feedback as specified in requirements.",
+    "In My Story tab, allow CV/ERAS upload simulation, USMLE Step 1/2 score badges, research items, and instant 'Generate Practice Questions' action.",
+    "Provide a simulated $20/month subscription upgrade drawer/modal or badge showing Active Residency Pro Membership."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": {
+    "spacing": "Generous spacing philosophy (p-6, p-8 for containers).",
+    "contrast": "All text must meet APCA / WCAG AA standard against white/rose-blush backgrounds.",
+    "micro_interactions": "Smooth hover states on cards, pill buttons with shadow-md on primary actions, scale-95 on click.",
+    "testing_attributes": "MUST add data-testid to every button, input, tab, card action, and score display."
+  }
+}
