@@ -58,8 +58,8 @@ export default function AppShell() {
               <div className="flex items-center gap-2 text-xs uppercase tracking-wider font-semibold opacity-90">
                 <Sparkles className="w-3.5 h-3.5"/> Upgrade
               </div>
-              <div className="mt-2 font-display font-bold text-lg leading-tight">Unlock unlimited practice</div>
-              <div className="mt-1 text-xs opacity-90">From $9.99/month · cancel anytime</div>
+              <div className="mt-2 font-display font-bold text-lg leading-tight">{user?.trial_used ? "Unlock unlimited practice" : "Try Pro free for 7 days"}</div>
+              <div className="mt-1 text-xs opacity-90">{user?.trial_used ? "From $9.99/month · cancel anytime" : "No charge for 7 days · cancel anytime"}</div>
             </button>
           )}
           <div className="mt-3 flex items-center gap-3 p-3 rounded-xl border border-slate-100">
@@ -89,7 +89,7 @@ export default function AppShell() {
           <Outlet />
         </div>
       </main>
-      <UpgradeDialog open={upgradeOpen} onOpenChange={setUpgradeOpen} currentPlan={user?.plan}/>
+      <UpgradeDialog open={upgradeOpen} onOpenChange={setUpgradeOpen} currentPlan={user?.plan} trialUsed={user?.trial_used}/>
     </div>
   );
 }

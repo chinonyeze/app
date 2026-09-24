@@ -34,7 +34,9 @@ export const PLANS = [
     cadence: "/ month",
     tagline: "The full residency interview coach.",
     highlight: true,
+    trialDays: 7,
     features: [
+      "7-day free trial — cancel anytime",
       "Everything in Essential",
       "AI voice mock interviews",
       "Speech & body-language analysis",
@@ -54,11 +56,19 @@ export const PLANS = [
   },
 ];
 
-export function PlansGrid({ onSelect, currentPlan }) {
+export function PlansGrid({ onSelect, currentPlan, trialUsed }) {
   return (
     <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger">
       {PLANS.map((p) => {
         const isCurrent = currentPlan === p.id;
+        const proTrialAvailable = p.id === "pro" && !trialUsed && currentPlan !== "pro";
+        const ctaLabel = isCurrent
+          ? "Current plan"
+          : !p.lookup
+          ? "Included"
+          : proTrialAvailable
+          ? "Start 7-day free trial"
+          : "Choose";
         return (
           <div
             key={p.id}
@@ -68,12 +78,18 @@ export function PlansGrid({ onSelect, currentPlan }) {
             {p.highlight && (
               <span className="absolute -top-3 left-6 text-[10px] uppercase tracking-wider font-semibold bg-rose-600 text-white px-2.5 py-1 rounded-full">Most popular</span>
             )}
+            {proTrialAvailable && (
+              <span className="absolute -top-3 right-6 text-[10px] uppercase tracking-wider font-semibold bg-emerald-600 text-white px-2.5 py-1 rounded-full">7-day free trial</span>
+            )}
             <div className="text-xs uppercase tracking-wider font-semibold text-rose-700">{p.name}</div>
             <div className="mt-2 flex items-baseline gap-1">
               <span className="font-display text-3xl font-extrabold text-slate-900">{p.price}</span>
               <span className="text-xs text-slate-500">{p.cadence}</span>
             </div>
             <p className="mt-1 text-sm text-slate-600">{p.tagline}</p>
+            {proTrialAvailable && (
+              <p className="mt-2 text-xs text-emerald-700 font-medium">Free for 7 days. Then $19.99/mo. Cancel anytime.</p>
+            )}
             <ul className="mt-4 space-y-2 text-sm text-slate-700 flex-1">
               {p.features.map((f) => (
                 <li key={f} className="flex items-start gap-2"><Check className="w-4 h-4 mt-0.5 text-emerald-600 shrink-0"/>{f}</li>
@@ -85,7 +101,7 @@ export function PlansGrid({ onSelect, currentPlan }) {
               onClick={() => p.lookup && onSelect(p.lookup)}
               className={`mt-5 rounded-full ${p.highlight ? "bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700" : "bg-slate-900 hover:bg-slate-800"}`}
             >
-              {isCurrent ? "Current plan" : p.lookup ? "Choose" : "Included"}
+              {ctaLabel}
             </Button>
           </div>
         );
@@ -94,7 +110,7 @@ export function PlansGrid({ onSelect, currentPlan }) {
   );
 }
 
-export function UpgradeDialog({ open, onOpenChange, currentPlan }) {
+export function UpgradeDialog({ open, onOpenChange, currentPlan, trialUsed }) {
   const [busy, setBusy] = useState(false);
   const start = async (lookup) => {
     setBusy(true);
@@ -112,7 +128,7 @@ export function UpgradeDialog({ open, onOpenChange, currentPlan }) {
         <DialogHeader>
           <DialogTitle className="font-display text-2xl">Choose your MatchPrep plan</DialogTitle>
         </DialogHeader>
-        <div className="mt-2"><PlansGrid onSelect={start} currentPlan={currentPlan}/></div>
+        <div className="mt-2"><PlansGrid onSelect={start} currentPlan={currentPlan} trialUsed={trialUsed}/></div>
         {busy && <div className="mt-4 text-sm text-slate-500 text-center">Opening secure checkout…</div>}
       </DialogContent>
     </Dialog>

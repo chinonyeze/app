@@ -144,6 +144,7 @@ export default function Landing() {
             } catch { toast.error("Could not open checkout"); }
           }}
           currentPlan={user?.plan}
+          trialUsed={user?.trial_used}
         />
       </section>
 

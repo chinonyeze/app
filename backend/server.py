@@ -629,6 +629,13 @@ async def create_checkout(req: CheckoutReq, user=Depends(get_current_user)):
         customer_email=user["email"],
         metadata={"user_id": user["user_id"], "lookup_key": lookup, "plan": PLAN_BY_LOOKUP[lookup]},
     )
+    # 7-day free trial for Pro (subscription only). Only offer trial if the user
+    # hasn't already used one (tracked in users.trial_used).
+    if lookup == "matchprep_pro_monthly" and price.recurring and not user.get("trial_used"):
+        kwargs["subscription_data"] = {
+            "trial_period_days": 7,
+            "metadata": {"user_id": user["user_id"], "plan": "pro"},
+        }
     try:
         session = stripe.checkout.Session.create(**kwargs, managed_payments={"enabled": True})
     except stripe.error.InvalidRequestError as e:
@@ -674,7 +681,18 @@ async def payment_status(session_id: str):
                     }},
                 )
                 if record.get("user_id"):
-                    await db.users.update_one({"user_id": record["user_id"]}, {"$set": {"plan": record.get("plan", "pro")}})
+                    update = {"plan": record.get("plan", "pro")}
+                    if record.get("plan") == "pro":
+                        update["trial_used"] = True
+                    if s.subscription:
+                        try:
+                            sub = stripe.Subscription.retrieve(s.subscription)
+                            if getattr(sub, "trial_end", None):
+                                update["trial_ends_at"] = datetime.fromtimestamp(sub.trial_end, tz=timezone.utc).isoformat()
+                                update["subscription_status"] = sub.status
+                        except Exception:
+                            pass
+                    await db.users.update_one({"user_id": record["user_id"]}, {"$set": update})
                 record = await db.payment_transactions.find_one({"session_id": session_id}, {"_id": 0})
         except Exception:
             pass
@@ -708,7 +726,19 @@ async def stripe_webhook(request: Request):
         user_id = (obj.get("metadata") or {}).get("user_id")
         plan = (obj.get("metadata") or {}).get("plan", "pro")
         if user_id:
-            await db.users.update_one({"user_id": user_id}, {"$set": {"plan": plan}})
+            update = {"plan": plan}
+            if plan == "pro":
+                update["trial_used"] = True
+            sub_id = obj.get("subscription")
+            if sub_id:
+                try:
+                    sub = stripe.Subscription.retrieve(sub_id)
+                    if getattr(sub, "trial_end", None):
+                        update["trial_ends_at"] = datetime.fromtimestamp(sub.trial_end, tz=timezone.utc).isoformat()
+                        update["subscription_status"] = sub.status
+                except Exception:
+                    pass
+            await db.users.update_one({"user_id": user_id}, {"$set": update})
     elif t == "customer.subscription.deleted":
         rec = await db.payment_transactions.find_one({"stripe_subscription_id": obj.get("id")}, {"_id": 0, "user_id": 1})
         if rec and rec.get("user_id"):
