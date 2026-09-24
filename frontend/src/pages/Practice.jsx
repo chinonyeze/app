@@ -100,6 +100,10 @@ export default function Practice() {
 
   const startRecording = async () => {
     try {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        toast.error("Your browser does not support microphone capture");
+        return;
+      }
       const wantVideo = videoOn && consent;
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
@@ -108,23 +112,41 @@ export default function Practice() {
       streamRef.current = stream;
       if (wantVideo && videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+        try { await videoRef.current.play(); } catch (_) { /* autoplay policy */ }
       }
-      const mr = new MediaRecorder(stream, { mimeType: "audio/webm" });
+      const audioTracks = stream.getAudioTracks();
+      if (!audioTracks.length) {
+        toast.error("No microphone track available");
+        stopStream();
+        return;
+      }
+      // Record ONLY audio (Whisper doesn't need video); prevents mimeType mismatch when
+      // the stream also contains a video track.
+      const audioStream = new MediaStream(audioTracks);
+      let mimeType = "";
+      const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus", "audio/ogg"];
+      if (window.MediaRecorder) {
+        for (const t of candidates) {
+          if (MediaRecorder.isTypeSupported(t)) { mimeType = t; break; }
+        }
+      }
+      let mr;
+      try {
+        mr = mimeType ? new MediaRecorder(audioStream, { mimeType }) : new MediaRecorder(audioStream);
+      } catch (err) {
+        console.error("MediaRecorder init failed", err);
+        toast.error("Recording not supported in this browser");
+        stopStream();
+        return;
+      }
       chunksRef.current = [];
       mr.ondataavailable = (e) => e.data.size && chunksRef.current.push(e.data);
+      mr.onerror = (e) => { console.error("recorder error", e); toast.error("Recording error"); };
       mr.onstop = async () => {
-        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        const blob = new Blob(chunksRef.current, { type: mimeType || "audio/webm" });
         const duration = (Date.now() - recordStartRef.current) / 1000;
-        try {
-          const t = await stt(blob);
-          const transcript = t.text || "";
-          if (transcript.trim()) {
-            submitText(transcript);
-            analyzeSpeech({ transcript, duration_seconds: duration }).then(setSpeech).catch(() => {});
-          }
-        } catch { toast.error("Transcription failed"); }
-        // capture one frame for body language
+        if (!blob.size) { toast.error("Recording was empty — check your mic"); stopStream(); return; }
+        // capture one frame BEFORE stopping the stream
         if (wantVideo && videoRef.current) {
           try {
             const canvas = document.createElement("canvas");
@@ -136,13 +158,39 @@ export default function Practice() {
           } catch {}
         }
         stopStream();
+        try {
+          const t = await stt(blob);
+          const transcript = t.text || "";
+          if (transcript.trim()) {
+            if (sessionId) submitText(transcript);
+            else setText(transcript);
+            analyzeSpeech({ transcript, duration_seconds: duration }).then(setSpeech).catch(() => {});
+          } else {
+            toast.error("No speech detected");
+          }
+        } catch (err) {
+          console.error(err);
+          toast.error("Transcription failed");
+        }
       };
       mediaRecorderRef.current = mr;
       recordStartRef.current = Date.now();
-      mr.start();
+      mr.start(1000);
       setRecording(true);
     } catch (e) {
-      toast.error("Microphone access denied");
+      console.error("getUserMedia failed", e);
+      const name = e?.name || "";
+      if (name === "NotAllowedError" || name === "PermissionDeniedError") {
+        toast.error("Microphone permission denied — check your browser's site settings");
+      } else if (name === "NotFoundError" || name === "DevicesNotFoundError") {
+        toast.error("No microphone found on this device");
+      } else if (name === "NotReadableError") {
+        toast.error("Microphone is in use by another app");
+      } else if (window.isSecureContext === false) {
+        toast.error("Microphone requires HTTPS");
+      } else {
+        toast.error(`Mic error: ${e?.message || name || "unknown"}`);
+      }
     }
   };
 
@@ -258,7 +306,7 @@ export default function Practice() {
                 <Send className="w-4 h-4"/>
               </Button>
               {!recording ? (
-                <Button data-testid="start-recording" onClick={startRecording} disabled={!sessionId || busy} variant="outline" className="rounded-full border-rose-200">
+                <Button data-testid="start-recording" onClick={startRecording} disabled={busy || !consent} variant="outline" className="rounded-full border-rose-200" title={!consent ? "Tick the consent box to record" : "Record answer"}>
                   <Mic className="w-4 h-4"/>
                 </Button>
               ) : (
