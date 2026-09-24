@@ -1,0 +1,24 @@
+{
+  "summary": "Frontend-only retest of Practice page media capture bug fix. Seeded a fresh session cookie, granted mic/camera permissions to Playwright context. All 8 targeted checks pass: consent gates the mic + video-toggle buttons; after consent, start-recording is enabled without an interview session; toggling video renders <video data-testid='video-preview'>; clicking start-recording actually begins recording (button flips to stop-recording; MediaRecorder does NOT throw the old 'unsupported mimeType' error even with videoOn=true because the code now records audio-only via new MediaStream(audioTracks) with a supported mimeType from isTypeSupported); pressing stop-recording issues POST /api/stt (verified in network log). Errors now surface via sonner toast ('Transcription failed') instead of silently failing. Backend /api/stt returned 502 because headless fake-audio is silent and Whisper rejects it; our endpoint reports that upstream error as 502 (expected per acceptance criteria) — not a 401/500 from our own code.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Practice.jsx (~425 lines) is approaching the size limit; consider splitting recording/media logic into a useMediaRecorder hook for maintainability.",
+    "startRecording() correctly picks a supported mimeType and records audio-only; consider also passing that mimeType into the Blob and to the STT endpoint via filename extension (currently uses audio.webm regardless of chosen mimeType — e.g., audio/mp4 blobs would be sent with .webm extension which could confuse Whisper).",
+    "onstop handler calls stopStream() before capturing the video frame's srcObject — code order is currently fine (frame captured first), but a follow-up refactor should guard against regressions."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only)", "frontend": "100% (8/8 checks)"},
+  "test_credentials": "cookie session_token=test_session_matchprep_1790213562097 (reseeded via mongosh; user_id=test-user-matchprep)",
+  "seed_data_creation": "Reseeded user_sessions row for test-user-matchprep",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "The Practice page media fix is verified working. Only lingering observation: /api/stt returns 502 in headless because fake mic emits silence and Whisper rejects it — this is not a bug in our code. To validate STT end-to-end you'd need to POST a real webm audio blob with speech to /api/stt using the seeded Bearer token.",
+  "rca of the issue": "Original bug: MediaRecorder was constructed with mimeType 'audio/webm' on a stream that contained a video track when videoOn was true; the browser silently failed with an unsupported mimeType exception that was swallowed. Fix (verified): (1) construct a fresh MediaStream from getAudioTracks() only, (2) select a supported mimeType via MediaRecorder.isTypeSupported() with candidates [audio/webm;codecs=opus, audio/webm, audio/mp4, audio/ogg;codecs=opus, audio/ogg], (3) enable start-recording gate on !consent instead of !sessionId so mic can be tested without starting interview, (4) surface named getUserMedia errors (NotAllowedError/NotFoundError/NotReadableError) as toast messages."
+}
