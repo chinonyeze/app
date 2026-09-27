@@ -3,9 +3,9 @@ import { createRoot } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
 import AuthPage from "./AuthPage";
 import { useAuth } from "@/context/AuthContext";
-import { getSupabase } from "@/lib/supabase";
+import { getSupabase, signInWithGoogle } from "@/lib/supabase";
 jest.mock("@/context/AuthContext", () => ({ useAuth: jest.fn() }));
-jest.mock("@/lib/supabase", () => ({ isSupabaseConfigured: true, getSupabase: jest.fn(), authRedirect: (path) => `http://localhost${path}` }));
+jest.mock("@/lib/supabase", () => ({ isSupabaseConfigured: true, getSupabase: jest.fn(), signInWithGoogle: jest.fn(), authRedirect: (path) => `http://localhost${path}` }));
 let root, element, auth;
 beforeEach(() => {
   global.IS_REACT_ACT_ENVIRONMENT = true;
@@ -13,6 +13,7 @@ beforeEach(() => {
   useAuth.mockReturnValue({ user: null, loading: false });
   auth = Object.fromEntries(["signInWithPassword", "signUp", "resetPasswordForEmail", "updateUser", "signInWithOAuth"].map((method) => [method, jest.fn().mockResolvedValue({ data: {}, error: null })]));
   getSupabase.mockReturnValue({ auth });
+  signInWithGoogle.mockReset().mockResolvedValue({ data: {}, error: null });
 });
 afterEach(() => { act(() => root.unmount()); element.remove(); });
 const render = (mode) => act(() => root.render(<MemoryRouter><AuthPage mode={mode} /></MemoryRouter>));
@@ -55,5 +56,5 @@ test("recovered session can update password", async () => {
 test("Google button uses Supabase OAuth and the app callback", async () => {
   render("login");
   await act(async () => Array.from(element.querySelectorAll("button")).find((button) => button.textContent.includes("Google")).click());
-  expect(auth.signInWithOAuth).toHaveBeenCalledWith({ provider: "google", options: { redirectTo: "http://localhost/auth/callback" } });
+  expect(signInWithGoogle).toHaveBeenCalledTimes(1);
 });

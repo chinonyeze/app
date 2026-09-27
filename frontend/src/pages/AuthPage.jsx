@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { authRedirect, getSupabase, isSupabaseConfigured } from "@/lib/supabase";
+import { authRedirect, getSupabase, isSupabaseConfigured, signInWithGoogle } from "@/lib/supabase";
 import AuthLayout from "@/components/auth/AuthLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -57,7 +57,7 @@ export default function AuthPage({ mode }) {
   const google = async () => {
     setBusy(true); setError("");
     try {
-      const { error: oauthError } = await getSupabase().auth.signInWithOAuth({ provider: "google", options: { redirectTo: authRedirect("/auth/callback") } });
+      const { error: oauthError } = await signInWithGoogle();
       if (oauthError) throw oauthError;
     } catch (err) { setError(err.message || "Google sign-in could not start."); setBusy(false); }
   };
@@ -65,7 +65,7 @@ export default function AuthPage({ mode }) {
 
   return (
     <AuthLayout title={title} description={description}>
-      {!isSupabaseConfigured && <p role="alert" className="mb-4 text-sm text-rose-700">Sign-in is not configured yet. Please try again later.</p>}
+      {!isSupabaseConfigured && <p role="alert" className="mb-4 text-sm text-rose-700">Supabase not configured</p>}
       {(error || authError || callbackFailed) && <p role="alert" className="mb-4 text-sm text-rose-700">{error || authError || "This sign-in link is invalid or expired. Please request a new link."}</p>}
       {message && <p role="status" className="mb-4 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800">{message}</p>}
       {unavailableReset ? (
