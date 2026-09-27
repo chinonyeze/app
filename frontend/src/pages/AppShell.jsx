@@ -21,6 +21,10 @@ export default function AppShell() {
   const showUpgrade = !user?.plan || user.plan === "free";
   const planLabel = { free: "Free plan", essential: "✓ Essential", pro: "✓ Pro member", season_pass: "✓ Season Pass" }[user?.plan || "free"] || "Free plan";
 
+  const signOut = async () => {
+    try { await logout(); navigate("/login", { replace: true }); }
+    catch (error) { toast.error(error.message); }
+  };
   const upgrade = () => setUpgradeOpen(true);
 
   return (
@@ -70,7 +74,7 @@ export default function AppShell() {
               <div className="text-sm font-medium text-slate-800 truncate" data-testid="user-name">{user?.name}</div>
               <div className="text-[11px] text-slate-500 truncate" data-testid="user-plan">{planLabel}</div>
             </div>
-            <button data-testid="logout-button" onClick={() => { logout(); navigate("/"); }} className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800">
+            <button data-testid="logout-button" onClick={signOut} aria-label="Sign out" className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800">
               <LogOut className="w-4 h-4"/>
             </button>
           </div>
@@ -84,6 +88,10 @@ export default function AppShell() {
               <t.icon className="w-3.5 h-3.5"/>{t.label}
             </NavLink>
           ))}
+        </div>
+        <div className="px-6 pt-4 text-xs text-slate-500">
+          Your account and profile are live. Interview tools, saved practice data, and subscriptions are not available yet.
+          <Button variant="ghost" size="sm" className="lg:hidden" onClick={signOut}>Sign out</Button>
         </div>
         <div className="p-6 lg:p-10 max-w-6xl">
           <Outlet />

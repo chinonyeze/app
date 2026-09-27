@@ -4,9 +4,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { getProfile, saveProfile, generateQuestions, getQuestions } from "@/lib/api";
+import { getProfile, generateQuestions, getQuestions } from "@/lib/api";
 import { toast } from "sonner";
-import { Save, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
+
+import ProfileForm from "@/components/auth/ProfileForm";
+import { useAuth } from "@/context/AuthContext";
 
 const FIELDS = [
   ["specialty", "Specialty", "e.g. Internal Medicine"],
@@ -32,6 +35,7 @@ const LONG = [
 ];
 
 export default function MyStory() {
+  const { profile, refresh } = useAuth();
   const [p, setP] = useState({});
   const [busy, setBusy] = useState(false);
   const [bank, setBank] = useState([]);
@@ -42,12 +46,6 @@ export default function MyStory() {
     getQuestions().then((d) => setBank(d.questions || [])).catch(() => {});
   }, []);
 
-  const save = async () => {
-    setBusy(true);
-    try { await saveProfile(p); toast.success("Saved"); }
-    catch { toast.error("Save failed"); }
-    finally { setBusy(false); }
-  };
   const gen = async () => {
     setBusy(true);
     try { const r = await generateQuestions(); setBank(r.questions || []); toast.success("Questions generated"); }
@@ -60,11 +58,19 @@ export default function MyStory() {
       <div>
         <div className="text-xs uppercase tracking-wider text-rose-700 font-semibold">My Story</div>
         <h1 className="mt-1 text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Your application, ready to talk about.</h1>
-        <p className="mt-2 text-slate-600">Fill this in once. Every mock interview and question bank draws from here.</p>
+        <p className="mt-2 text-slate-600">Manage your private profile. Additional application details and question generation are not available yet.</p>
       </div>
 
       <Card className="rounded-2xl border-rose-100/70">
         <CardContent className="p-6">
+          <ProfileForm key={profile.id} profile={profile} onSaved={() => { toast.success("Profile saved"); refresh(); }} />
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-2xl border-rose-100/70">
+        <CardContent className="p-6">
+          <p className="mb-4 text-sm text-slate-500">Additional application details — unavailable in this phase. These fields are not saved.</p>
+          <fieldset disabled>
           <div className="grid sm:grid-cols-2 gap-4">
             {FIELDS.map(([k, label, ph]) => (
               <div key={k}>
@@ -86,16 +92,16 @@ export default function MyStory() {
             I consent to sharing anonymized pre/post-evaluation feedback so MatchPrep can improve.
           </label>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Button data-testid="save-profile" onClick={save} disabled={busy} className="rounded-full bg-slate-900 hover:bg-slate-800"><Save className="w-4 h-4 mr-1"/>Save profile</Button>
             <Button data-testid="generate-questions" onClick={gen} disabled={busy} className="rounded-full bg-gradient-to-r from-rose-600 to-pink-600"><Sparkles className="w-4 h-4 mr-1"/>Generate my question bank</Button>
           </div>
+          </fieldset>
         </CardContent>
       </Card>
 
       <Card className="rounded-2xl border-rose-100/70">
         <CardContent className="p-6">
           <div className="text-xs uppercase tracking-wider text-rose-700 font-semibold">Personalized question bank</div>
-          {bank.length === 0 && <div className="mt-3 text-sm text-slate-500">Save your profile then click Generate to build a personalized question bank.</div>}
+          {bank.length === 0 && <div className="mt-3 text-sm text-slate-500">Personalized question generation is not available in this phase.</div>}
           <div className="mt-4 space-y-3">
             {bank.map((q, i) => (
               <div key={i} className="rounded-2xl border border-slate-200 p-4" data-testid={`question-${i}`}>

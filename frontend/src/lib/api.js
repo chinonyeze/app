@@ -1,4 +1,6 @@
 import axios from "axios";
+import { getSupabase } from "./supabase";
+import { loadProfile, updateProfile } from "./profiles";
 
 const BACKEND_URL = (process.env.REACT_APP_BACKEND_URL || "").replace(/\/$/, "");
 export const API = `${BACKEND_URL}/api`;
@@ -8,8 +10,8 @@ export const api = axios.create({
   withCredentials: true,
 });
 
-// The development Pro fixture must never be used to access a real backend.
-// No backend configuration is needed for the public landing page.
+// Legacy backend features remain disconnected from Supabase authentication.
+// No backend configuration is needed for auth or profiles.
 api.interceptors.request.use((config) => {
   if (process.env.NODE_ENV === "development" || !BACKEND_URL) {
     throw new Error("Backend features are unavailable in the Phase 1 preview.");
@@ -17,19 +19,13 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-export async function getMe() {
-  const r = await api.get("/auth/me");
-  return r.data;
+// Phase 2 profile data uses Supabase directly; RLS enforces ownership.
+export async function getProfile() {
+  const { data: { user }, error } = await getSupabase().auth.getUser();
+  if (error || !user) throw new Error("Please sign in to load your profile.");
+  return loadProfile(user.id);
 }
-export async function logout() {
-  await api.post("/auth/logout");
-}
-export async function exchangeSession(session_id) {
-  const r = await api.post("/auth/session", { session_id });
-  return r.data.user;
-}
-export async function getProfile() { return (await api.get("/profile")).data; }
-export async function saveProfile(p) { return (await api.put("/profile", p)).data; }
+export const saveProfile = updateProfile;
 export async function startInterview(payload) { return (await api.post("/interview/start", payload)).data; }
 export async function sendInterviewMessage(payload) { return (await api.post("/interview/message", payload)).data; }
 export async function endInterview(session_id) { return (await api.post(`/interview/end/${session_id}`)).data; }

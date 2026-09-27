@@ -1,3 +1,5 @@
+> Phase 2 now uses Supabase authentication and profiles. Follow [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) for current setup. The Phase 1 auth/preview instructions below are historical.
+
 # Phase 1: CRA frontend on Vercel
 
 This is the current Phase 1 deployment guide. MIGRATION_PLAN.md and

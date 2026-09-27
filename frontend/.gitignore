@@ -21,3 +21,8 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Local Supabase configuration; commit only the example.
+.env
+.env.*
+!.env.example

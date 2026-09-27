@@ -21,7 +21,7 @@ export default function Landing() {
   const navigate = useNavigate();
   const startLogin = () => {
     if (user) { navigate("/dashboard"); return; }
-    toast.info("Sign-in and subscriptions are not available in this Phase 1 preview.");
+    navigate("/login");
   };
 
   return (
@@ -64,7 +64,7 @@ export default function Landing() {
               Voice-first AI mock interviews with 6 realistic personalities. Body language coaching. SARR framework analysis. Program-specific prep. All in one clinical-grade workspace.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button data-testid="hero-start-cta" onClick={startLogin} size="lg" className="rounded-full bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 shadow-lg shadow-rose-500/25 px-8">
+              <Button data-testid="hero-start-cta" onClick={() => navigate(user ? "/dashboard" : "/signup")} size="lg" className="rounded-full bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 shadow-lg shadow-rose-500/25 px-8">
                 Start free — upgrade anytime
               </Button>
               <Button data-testid="hero-see-features" variant="outline" size="lg" onClick={() => document.getElementById("features").scrollIntoView({ behavior: "smooth" })} className="rounded-full border-rose-200 text-slate-700">
