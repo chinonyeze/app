@@ -1,11 +1,20 @@
 import axios from "axios";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = (process.env.REACT_APP_BACKEND_URL || "").replace(/\/$/, "");
 export const API = `${BACKEND_URL}/api`;
 
 export const api = axios.create({
   baseURL: API,
   withCredentials: true,
+});
+
+// The development Pro fixture must never be used to access a real backend.
+// No backend configuration is needed for the public landing page.
+api.interceptors.request.use((config) => {
+  if (process.env.NODE_ENV === "development" || !BACKEND_URL) {
+    throw new Error("Backend features are unavailable in the Phase 1 preview.");
+  }
+  return config;
 });
 
 export async function getMe() {

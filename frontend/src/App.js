@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
 import "@/App.css";
-import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 import Landing from "@/pages/Landing";
 import AppShell from "@/pages/AppShell";
@@ -11,33 +10,7 @@ import Progress from "@/pages/Progress";
 import MyStory from "@/pages/MyStory";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import PaymentCancel from "@/pages/PaymentCancel";
-import { AuthProvider, useAuth } from "@/context/AuthContext";
-import { exchangeSession } from "@/lib/api";
-
-function AuthCallback() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { setUser } = useAuth();
-  useEffect(() => {
-    const hash = location.hash || "";
-    const m = hash.match(/session_id=([^&]+)/);
-    if (!m) { navigate("/", { replace: true }); return; }
-    // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
-    exchangeSession(m[1])
-      .then((user) => {
-        setUser(user);
-        window.history.replaceState(null, "", "/dashboard");
-        navigate("/dashboard", { replace: true });
-      })
-      .catch(() => navigate("/", { replace: true }));
-  }, [location.hash, navigate, setUser]);
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-rose-50 to-pink-50">
-      <div className="text-rose-700 font-semibold" data-testid="auth-callback-loading">Signing you in…</div>
-    </div>
-  );
-}
-
+import { AuthProvider, useAuth, isDevelopmentPreview } from "@/context/AuthContext";
 function Protected({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="min-h-screen flex items-center justify-center text-slate-500">Loading…</div>;
@@ -46,8 +19,6 @@ function Protected({ children }) {
 }
 
 function AppRouter() {
-  const location = useLocation();
-  if (location.hash?.includes("session_id=")) return <AuthCallback />;
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
@@ -69,6 +40,11 @@ export default function App() {
     <div className="App">
       <BrowserRouter>
         <AuthProvider>
+          {isDevelopmentPreview && (
+            <div role="status" className="bg-amber-50 px-4 py-2 text-center text-xs text-amber-900">
+              DEVELOPMENT/PREVIEW ONLY — simulated Pro user. No real authentication, payments, or backend features.
+            </div>
+          )}
           <AppRouter />
           <Toaster richColors position="top-right" />
         </AuthProvider>

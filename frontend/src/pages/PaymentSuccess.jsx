@@ -8,13 +8,14 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 export default function PaymentSuccess() {
   const loc = useLocation();
   const navigate = useNavigate();
-  const [status, setStatus] = useState("pending");
+  const [status, setStatus] = useState("unavailable");
   const timer = useRef(null);
   const tries = useRef(0);
 
   useEffect(() => {
     const sid = new URLSearchParams(loc.search).get("session_id");
-    if (!sid) return;
+    if (!sid || !process.env.REACT_APP_BACKEND_URL || process.env.NODE_ENV === "development") return;
+    setStatus("pending");
     const poll = async () => {
       try {
         const r = await paymentStatus(sid);
@@ -38,6 +39,11 @@ export default function PaymentSuccess() {
               <h1 className="mt-4 text-3xl font-extrabold text-slate-900">Welcome to Pro</h1>
               <p className="mt-2 text-slate-600">Unlimited mocks, coaching, and program prep unlocked.</p>
               <Button data-testid="open-dashboard-after-pay" onClick={() => navigate("/dashboard")} className="mt-6 rounded-full bg-gradient-to-r from-rose-600 to-pink-600">Open dashboard</Button>
+            </>
+          ) : status === "unavailable" ? (
+            <>
+              <p className="text-slate-700">Payments are unavailable in this Phase 1 preview. No subscription has been activated.</p>
+              <Button onClick={() => navigate("/")} className="mt-6 rounded-full">Back to home</Button>
             </>
           ) : (
             <>
